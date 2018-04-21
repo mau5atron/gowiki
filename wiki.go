@@ -41,18 +41,6 @@ func loadPage(title string) (*Page, error) {
 }
 
 
-
-// main function to test methods
-
-func main(){
-	p1 := &Page{Title: "TestPage", Body: []byte("This is a sample page.")}
-	p1.save()
-
-	p2, _ := loadPage("TestPage")
-	fmt.Println(string(p2.Body))
-}
-
-
 func viewHandler(w http.ResponseWriter, r *http.Request){
 	// extracts page title from the path component of request url
 	title := r.URL.Path[len("/view/"):]
@@ -62,5 +50,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request){
 	p, _ := loadPage(title)
 
 	// page is formatted with title and body in html elements
-	fmt.Fprintf(w, "<h1>%s</h1><div></div>", p.Title, p.Body)
+	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
+
+// main function to test methods
+// small note: goes below everything
+func main(){
+	http.HandleFunc("/view/", viewHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+
