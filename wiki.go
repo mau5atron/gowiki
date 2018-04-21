@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 type Page struct {
@@ -52,3 +53,14 @@ func main(){
 }
 
 
+func viewHandler(w http.ResponseWriter, r *http.Request){
+	// extracts page title from the path component of request url
+	title := r.URL.Path[len("/view/"):]
+	// path is then sliced, /view/ is taken out of title
+
+	// loads page data, using blank identifier to throw out error
+	p, _ := loadPage(title)
+
+	// page is formatted with title and body in html elements
+	fmt.Fprintf(w, "<h1>%s</h1><div></div>", p.Title, p.Body)
+}
