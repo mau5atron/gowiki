@@ -20,7 +20,7 @@ func (p *Page) save() error {
 	
 	// the return value is of type error bc that is the return type of
 	// WriteFile in Go std-lib 
-	return ioutil.WriteFile(filename, p.body, 0600)
+	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
 func loadPage(title string) (*Page, error) {
@@ -48,7 +48,7 @@ func main(){
 	p1.save()
 
 	p2, _ := loadPage("TestPage")
-	fmt.Println(string(p2.body))
+	fmt.Println(string(p2.Body))
 }
 
 
