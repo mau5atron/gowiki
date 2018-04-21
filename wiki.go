@@ -8,7 +8,7 @@ import (
 type Page struct {
 	// struct is like a class, fields are initializers
 	Title string
-	body []byte
+	Body []byte
 }
 
 // This method saves the Page's body to a text file, Title is used 
