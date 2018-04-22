@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"html/template"
 )
 
 type Page struct {
@@ -40,6 +40,14 @@ func loadPage(title string) (*Page, error) {
 	// loads successfully with fields and nil
 	return &Page{Title: title, Body: body}, nil
 }
+ 
+// template code to handle parsing view files
+// DONT REPEAT YOURSELF
+
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
+	t, _ := template.ParseFiles(tmpl + ".html")
+	t.Execute(w, p)
+}
 
 
 func viewHandler(w http.ResponseWriter, r *http.Request){
@@ -50,9 +58,33 @@ func viewHandler(w http.ResponseWriter, r *http.Request){
 	// loads page data, using blank identifier to throw out error
 	p, _ := loadPage(title)
 
-	// page is formatted with title and body in html elements
-	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+	// Removed and made into method
+	// t, _ := template.ParseFiles("view.html")
+	// t.Execute(w, p) 
+
+	renderTemplate(w, "view", p)
 }
+
+func editHandler(w http.ResponseWriter, r *http.Request){
+	// extracts page titl from the path request url
+	// ie if title is = to edit based on path
+	title := r.URL.Path[len("/edit/"):]
+
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	// else if nil
+
+	// // html stuff from template
+	// Removed and made into method
+	// t, _ := template.ParseFiles("edit.html")
+	// t.Execute(w, p)
+
+	renderTemplate(w, "edit", p)
+
+}
+
 
 // main function to test methods
 // small note: goes below everything
