@@ -45,8 +45,18 @@ func loadPage(title string) (*Page, error) {
 // DONT REPEAT YOURSELF
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
-	t, _ := template.ParseFiles(tmpl + ".html")
-	t.Execute(w, p)
+	t, err := template.ParseFiles(tmpl + ".html")
+	// Error handling	
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, p)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	// http.error sends specified HTTP response code(custom response)
 }
 
 
@@ -57,6 +67,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request){
 
 	// loads page data, using blank identifier to throw out error
 	p, _ := loadPage(title)
+
+	if err != nil {
+		// redirects to edit page to add data of non is found
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
 
 	// Removed and made into method
 	// t, _ := template.ParseFiles("view.html")
@@ -85,6 +101,15 @@ func editHandler(w http.ResponseWriter, r *http.Request){
 
 }
 
+func saveHandler(w http.ResponseWriter, r *http.Request){
+	title := r.URL.Path[len("/save/"):]
+	body := r.FormValue("body")
+	// []byte(body) converts the FormValue of string to []byte before fitting in Page struct
+	p := &Page{Title: title, Body: []byte(body)}
+	p.save()
+
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
 
 // main function to test methods
 // small note: goes below everything
