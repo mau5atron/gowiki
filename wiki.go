@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"html/template"
+	"regexp"
 )
 
 type Page struct {
@@ -12,6 +13,20 @@ type Page struct {
 	Title string
 	Body []byte
 }
+
+// global variable
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+// Once the program initializes, ParseFiles will be called instead of 
+// inefficiently calling it twice with the renderTemplate method
+
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+/* 
+ - regexp.MustCompile will parse and compile the regular expression, and 
+ 	 return a regexp.Regexp
+ - MustCompile is distinct from Compile in that it will panic if expression 
+ 	 compilation fails.
+ - Compile only returns an error as second parameter
+*/
 
 // This method saves the Page's body to a text file, Title is used 
 // as the name of the text file
@@ -45,13 +60,13 @@ func loadPage(title string) (*Page, error) {
 // DONT REPEAT YOURSELF
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
-	t, err := template.ParseFiles(tmpl + ".html")
+	// t, err := template.ParseFiles(tmpl + ".html") dont need this
+
+	// calls the templates.ExecuteTemplate method with name of appropriate template
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+
 	// Error handling	
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = t.Execute(w, p)
+	// removed some error handling stuff
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -107,8 +122,24 @@ func saveHandler(w http.ResponseWriter, r *http.Request){
 	// []byte(body) converts the FormValue of string to []byte before fitting in Page struct
 	p := &Page{Title: title, Body: []byte(body)}
 	p.save()
+	// error handling, any errors that occur during save() will be reported to user	
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+
+// getTitle validates path with validPath expression to extract page title
+func getTitle(w http.ResponseWriter, r *http.Request)(string, error){
+	m := validPath.FindStringSubmatch(r.URL.Path)
+
+	if m == nil {
+		http.NotFound(w, r)
+		return "", errors.New("Invalid Page Title")
+	}
+	return m[2], nil // title is second subexpression
 }
 
 // main function to test methods
