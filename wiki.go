@@ -75,7 +75,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 }
 
 
-func viewHandler(w http.ResponseWriter, r *http.Request){
+func viewHandler(w http.ResponseWriter, r *http.Request, title string){
 	// extracts page title from the path component of request url
 	title, err := getTitle(w, r)
 	// also validates page title
@@ -99,7 +99,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request){
 	renderTemplate(w, "view", p)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request){
+func editHandler(w http.ResponseWriter, r *http.Request, title string){
 	// extracts page titl from the path request url
 	// ie if title is = to edit based on path
 	// title := r.URL.Path[len("/edit/"):]
@@ -124,7 +124,7 @@ func editHandler(w http.ResponseWriter, r *http.Request){
 
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request){
+func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 	// title := r.URL.Path[len("/save/"):]
 
 	title, err := getTitle(w, r)
@@ -146,22 +146,34 @@ func saveHandler(w http.ResponseWriter, r *http.Request){
 }
 
 // getTitle validates path with validPath expression to extract page title
-func getTitle(w http.ResponseWriter, r *http.Request)(string, error){
-	m := validPath.FindStringSubmatch(r.URL.Path)
+// func getTitle(w http.ResponseWriter, r *http.Request)(string, error){
+// 	m := validPath.FindStringSubmatch(r.URL.Path)
 
-	if m == nil {
-		http.NotFound(w, r)
-		return "", errors.New("Invalid Page Title")
+// 	if m == nil {
+// 		http.NotFound(w, r)
+// 		return "", errors.New("Invalid Page Title")
+// 	}
+// 	return m[2], nil // title is second subexpression
+// }
+
+func makeHandler(fn func(http,ResponseWriter, *http.Request, string)) http.HandleFunc {
+	return func(w http.ResponseWriter, r *http.Request){
+		m := validPath.FindStringSubmatch(r,URL.Request)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[2])
 	}
-	return m[2], nil // title is second subexpression
 }
+
 
 // main function to test methods
 // small note: goes below everything
 func main(){
-	http.HandleFunc("/view/", viewHandler)
-	http.HandleFunc("/edit/", editHandler)
-	http.HandleFunc("/save/", saveHandler)
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
