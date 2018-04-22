@@ -76,62 +76,25 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string){
-	// extracts page title from the path component of request url
-	title, err := getTitle(w, r)
-	// also validates page title
-	if err != nil {
-		return
-	}
-
 	// loads page data, using blank identifier to throw out error
-	p, _ := loadPage(title)
-
+	p, err := loadPage(title)
 	if err != nil {
 		// redirects to edit page to add data of non is found
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-
-	// Removed and made into method
-	// t, _ := template.ParseFiles("view.html")
-	// t.Execute(w, p) 
-
 	renderTemplate(w, "view", p)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, title string){
-	// extracts page titl from the path request url
-	// ie if title is = to edit based on path
-	// title := r.URL.Path[len("/edit/"):]
-	title, err := getTitle(w, r)
-
-	if err != nil {
-		return
-	}
-
 	p, err := loadPage(title)
 	if err != nil {
 		p = &Page{Title: title}
 	}
-	// else if nil
-
-	// // html stuff from template
-	// Removed and made into method
-	// t, _ := template.ParseFiles("edit.html")
-	// t.Execute(w, p)
-
 	renderTemplate(w, "edit", p)
-
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string){
-	// title := r.URL.Path[len("/save/"):]
-
-	title, err := getTitle(w, r)
-	if err != nil {
-		return
-	}
-
 	body := r.FormValue("body")
 	// []byte(body) converts the FormValue of string to []byte before fitting in Page struct
 	p := &Page{Title: title, Body: []byte(body)}
@@ -141,7 +104,6 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
