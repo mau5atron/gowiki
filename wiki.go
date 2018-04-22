@@ -98,7 +98,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 	body := r.FormValue("body")
 	// []byte(body) converts the FormValue of string to []byte before fitting in Page struct
 	p := &Page{Title: title, Body: []byte(body)}
-	p.save()
+	err := p.save()
 	// error handling, any errors that occur during save() will be reported to user	
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -118,9 +118,9 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 // 	return m[2], nil // title is second subexpression
 // }
 
-func makeHandler(fn func(http,ResponseWriter, *http.Request, string)) http.HandleFunc {
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request){
-		m := validPath.FindStringSubmatch(r,URL.Request)
+		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
 			http.NotFound(w, r)
 			return
