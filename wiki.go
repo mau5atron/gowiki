@@ -77,8 +77,11 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 
 func viewHandler(w http.ResponseWriter, r *http.Request){
 	// extracts page title from the path component of request url
-	title := r.URL.Path[len("/view/"):]
-	// path is then sliced, /view/ is taken out of title
+	title, err := getTitle(w, r)
+	// also validates page title
+	if err != nil {
+		return
+	}
 
 	// loads page data, using blank identifier to throw out error
 	p, _ := loadPage(title)
@@ -99,7 +102,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request){
 func editHandler(w http.ResponseWriter, r *http.Request){
 	// extracts page titl from the path request url
 	// ie if title is = to edit based on path
-	title := r.URL.Path[len("/edit/"):]
+	// title := r.URL.Path[len("/edit/"):]
+	title, err := getTitle(w, r)
+
+	if err != nil {
+		return
+	}
 
 	p, err := loadPage(title)
 	if err != nil {
@@ -117,7 +125,13 @@ func editHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request){
-	title := r.URL.Path[len("/save/"):]
+	// title := r.URL.Path[len("/save/"):]
+
+	title, err := getTitle(w, r)
+	if err != nil {
+		return
+	}
+
 	body := r.FormValue("body")
 	// []byte(body) converts the FormValue of string to []byte before fitting in Page struct
 	p := &Page{Title: title, Body: []byte(body)}
