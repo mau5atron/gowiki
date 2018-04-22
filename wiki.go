@@ -99,18 +99,6 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 	// http.error sends specified HTTP response code(custom response)
 }
 
-// getTitle validates path with validPath expression to extract page title
-// func getTitle(w http.ResponseWriter, r *http.Request)(string, error){
-// 	m := validPath.FindStringSubmatch(r.URL.Path)
-
-// 	if m == nil {
-// 		http.NotFound(w, r)
-// 		return "", errors.New("Invalid Page Title")
-// 	}
-// 	return m[2], nil // title is second subexpression
-// }
-
-
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 /* 
  - regexp.MustCompile will parse and compile the regular expression, and 
