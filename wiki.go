@@ -14,19 +14,9 @@ type Page struct {
 	Body []byte
 }
 
-// global variable
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
-// Once the program initializes, ParseFiles will be called instead of 
-// inefficiently calling it twice with the renderTemplate method
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-/* 
- - regexp.MustCompile will parse and compile the regular expression, and 
- 	 return a regexp.Regexp
- - MustCompile is distinct from Compile in that it will panic if expression 
- 	 compilation fails.
- - Compile only returns an error as second parameter
-*/
+
+
 
 // This method saves the Page's body to a text file, Title is used 
 // as the name of the text file
@@ -55,24 +45,7 @@ func loadPage(title string) (*Page, error) {
 	// loads successfully with fields and nil
 	return &Page{Title: title, Body: body}, nil
 }
- 
-// template code to handle parsing view files
-// DONT REPEAT YOURSELF
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
-	// t, err := template.ParseFiles(tmpl + ".html") dont need this
-
-	// calls the templates.ExecuteTemplate method with name of appropriate template
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
-
-	// Error handling	
-	// removed some error handling stuff
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	// http.error sends specified HTTP response code(custom response)
-}
 
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string){
@@ -107,6 +80,25 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
+// global variable
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+// Once the program initializes, ParseFiles will be called instead of 
+// inefficiently calling it twice with the renderTemplate method
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
+	// t, err := template.ParseFiles(tmpl + ".html") dont need this
+
+	// calls the templates.ExecuteTemplate method with name of appropriate template
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+
+	// Error handling	
+	// removed some error handling stuff
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	// http.error sends specified HTTP response code(custom response)
+}
+
 // getTitle validates path with validPath expression to extract page title
 // func getTitle(w http.ResponseWriter, r *http.Request)(string, error){
 // 	m := validPath.FindStringSubmatch(r.URL.Path)
@@ -118,6 +110,15 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string){
 // 	return m[2], nil // title is second subexpression
 // }
 
+
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+/* 
+ - regexp.MustCompile will parse and compile the regular expression, and 
+ 	 return a regexp.Regexp
+ - MustCompile is distinct from Compile in that it will panic if expression 
+ 	 compilation fails.
+ - Compile only returns an error as second parameter
+*/
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request){
 		m := validPath.FindStringSubmatch(r.URL.Path)
